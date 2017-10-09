@@ -66,6 +66,9 @@ step(model::Function, spl::Sampler{PG}, vi::VarInfo) = begin
     push!(particles, ref_particle)
   end
 
+  Ws_sum_prev = zeros(Float64, spl.alg.n_particles)
+  likelihood_estimator = 0.0
+
   while consume(particles) != Val{:done}
     # TODO: forkc somehow cause ProgressMeter to broke - need to figure out why
     resample!(particles, spl.alg.resampler, ref_particle; use_replay=false)
