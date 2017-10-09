@@ -88,6 +88,7 @@ using Turing.Traces
 # Turing essentials - modelling macros and inference algorithms
 export @model, @~, @VarName                   # modelling
 export HMC, SGLD, SGHMC, HMCDA, NUTS, IS, SMC, CSMC, PG, PMMH, Gibbs   # sampling
+export DP, mLogBetaPK                         # models
 export sample, setchunksize, resume           # inference
 export auto_tune_chunk_size!                  # helper
 export dprintln, set_verbosity, turnprogress  # debugging
@@ -128,6 +129,7 @@ include("core/compiler.jl")     # compiler
 include("core/container.jl")    # particle container
 include("core/io.jl")           # I/O
 include("samplers/sampler.jl")  # samplers
+include("models/models.jl")     # models
 include("core/ad.jl")           # Automatic Differentiation
 
 end
