@@ -47,8 +47,7 @@ end
 # sampler = Gibbs(N_samples, CSMC(N_particles, 1, :x), HMC(1, 0.1, 3, :s))
 # sampler = Gibbs(N_samples, CSMC(N_particles, 1, :x), HMC(1, 0.1, 3, :s))
 sampler = IPMCMC(100, 40, 10, 5)
-results = sample(infiniteMixture(data), sampler)
-mixtureComponents = computeMixtureComponents(length(data), infiniteMixtur(data2), sampler, :x)
+mixtureComponents = computeMixtureComponents(length(data), infiniteMixture(data2), sampler, :x)
 
 @test mean(mixtureComponents[2,:] .== mixtureComponents[4,:]) >= 0.6
 @test mean(mixtureComponents[1,:] .== mixtureComponents[5,:]) >= 0.6
