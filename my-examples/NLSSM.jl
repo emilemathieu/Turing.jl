@@ -1,6 +1,7 @@
 using Turing
 include("plot.jl")
 include("ess.jl")
+include("utils.jl")
 
 ###################### WITHOUT global parameters #########################
 
@@ -113,44 +114,8 @@ ipmcmc = IPMCMC(N_particles, Int(N_samples/2), 4, 2)
 
 ########### Analyzing
 
-# mixtureComponentsESS = zeros(T)
-# mixtureComponentsRes = results[:x]
-# mixtureComponents = zeros(T, length(mixtureComponentsRes))
-#
-# for j in 1:size(mixtureComponents,2)
-#     mixtureComponents[:,j] = mixtureComponentsRes[j]
-# end
-# for i in 1:size(mixtureComponents,1)
-#     mixtureComponentsESS[i] = ess_factor(mixtureComponents[i,:])
-#     if isnan(mixtureComponentsESS[i])
-#         mixtureComponentsESS[i] = 0.0
-#     end
-# end
-
-M = 10
-mixtureComponentsESS = zeros(M, T)
-for l = 1:M
-    println(l)
-    results = sample(NLSSM2(data2), ipmcmc)
-    mixtureComponentsRes = results[:x]
-    mixtureComponents = zeros(T, length(mixtureComponentsRes))
-
-    for j in 1:size(mixtureComponents,2)
-        mixtureComponents[:,j] = mixtureComponentsRes[j]
-    end
-    for i in 1:size(mixtureComponents,1)
-        mixtureComponentsESS[l,i] = ess_factor(mixtureComponents[i,:])
-        if isnan(mixtureComponentsESS[l,i])
-            mixtureComponentsESS[l,i] = 0.0
-        end
-    end
-end
-mixtureComponentsESSquartiles = zeros(3, T)
-for i in 1:T
-    mixtureComponentsESSquartiles[:, i] = quantile(mixtureComponentsESS[:,i], [.25, .5, .75])
-end
-
+mixtureComponents = computeMixtureComponents(T, NLSSM2(data2), ipmcmc, :x)
+# mixtureComponentsESSquartiles = computeMixtureComponentsESSquartiles(2, T, NLSSM2(data2), ipmcmc, :x)
 
 ############## Plots
-# linescatter(mixtureComponentsESS)
-ESSPlotVariance(mixtureComponentsESSquartiles, "PG")
+# ESSPlotVariance(mixtureComponentsESSquartiles, "PG")

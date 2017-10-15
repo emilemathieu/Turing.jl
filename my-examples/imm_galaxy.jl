@@ -1,6 +1,5 @@
 using Turing
 include("plot.jl")
-include("ess.jl")
 using Gallium
 
 # Galaxy dataset
@@ -44,42 +43,9 @@ sampler = IPMCMC(15, 25, 4, 2)
 # sampler = IPMCMC(15, 25, 4, 2, HMC(1, 0.2, 3, :s), :x)
 
 M = 20
-mixtureComponentsESS = zeros(M, length(data))
-for l = 1:M
-    println(l)
-    # shuffled_data = data[randperm(length(data))]
-    # results = sample(infiniteMixture(shuffled_data), sampler)
-    results = sample(infiniteMixture(data), sampler)
-    mixtureComponentsRes = results[:x]
-    mixtureComponents = zeros(length(data), length(mixtureComponentsRes))
-
-    for j in 1:size(mixtureComponents,2)
-        mixtureComponents[:,j] = mixtureComponentsRes[j]
-    end
-    for i in 1:size(mixtureComponents,1)
-        mixtureComponentsESS[l,i] = ess_factor(mixtureComponents[i,:])
-        if isnan(mixtureComponentsESS[l,i])
-            mixtureComponentsESS[l,i] = 0.0
-        end
-    end
-end
-mixtureComponentsESSquartiles = zeros(3, length(data))
-for i in 1:length(data)
-    mixtureComponentsESSquartiles[:, i] = quantile(mixtureComponentsESS[:,i], [.25, .5, .75])
-end
-
+mixtureComponentsESSquartiles = computeMixtureComponentsESSquartiles(M, T, (infiniteMixture(data), sampler, :x)
 ESSPlotVariance(mixtureComponentsESSquartiles, "PG")
-# ESSPlot(mean(mixtureComponentsESS,1))
-# linescatter(mixtureComponentsESS[1,:])
 
-# results = sample(infiniteMixture(data), sampler)
-# @step sample(infiniteMixture(data), sampler)
-#
-# mixtureComponentsRes = results[:x]
-# mixtureComponents = zeros(length(data), length(mixtureComponentsRes))
-# for j in 1:size(mixtureComponents,2)
-#     mixtureComponents[:,j] = mixtureComponentsRes[j]
-# end
 # linescatter(mixtureComponents[1,:],mixtureComponents[end,:],1:400,1:400,"X(t)","x", "X(t=1)","X(t=82)")
 # linescatter(results[:s])
 # plot_histogram(mixtureComponents[end,:])
