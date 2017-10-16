@@ -20,6 +20,8 @@ include("pgibbs.jl")
 include("pmmh.jl")
 include("ipmcmc.jl")
 include("gibbs.jl")
+include("support/pdmcmc_core.jl")
+include("pdmcmc.jl")
 
 ## Fallback functions
 
