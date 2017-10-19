@@ -75,6 +75,7 @@ step(model::Function, spl::Sampler{PG}, vi::VarInfo) = begin
   Ws, _ = weights(particles)
   indx = randcat(Ws)
   push!(spl.info[:logevidence], particles.logE)
+  setlogp!(particles[indx].vi, particles.logE)
 
   particles[indx].vi
 end

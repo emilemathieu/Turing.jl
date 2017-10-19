@@ -51,6 +51,7 @@ end
 step(model::Function, spl::Sampler{SMC}, vi::VarInfo) = begin
     TraceType = spl.alg.use_replay ? TraceR : TraceC
     particles = ParticleContainer{TraceType}(model)
+
     vi.index = 0; vi.num_produce = 0;  # We need this line cause fork2 deepcopy `vi`.
     vi[getretain(vi, 0, spl)] = NULL
     push!(particles, spl.alg.n_particles, spl, vi)
@@ -66,6 +67,7 @@ step(model::Function, spl::Sampler{SMC}, vi::VarInfo) = begin
     Ws, _ = weights(particles)
     indx = randcat(Ws)
     push!(spl.info[:logevidence], particles.logE)
+    setlogp!(particles[indx].vi, particles.logE)
 
     particles[indx].vi
 end
