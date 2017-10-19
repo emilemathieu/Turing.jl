@@ -50,10 +50,10 @@ function Sampler(alg::IPMCMC)
   default_SMC = SMC(alg.n_particles, alg.resampler, 1.0, false, alg.space, 0)
 
   for i in 1:alg.n_csmc_nodes
-    samplers[i] = Sampler(CSMC(default_CSMC, i))
+    samplers[i] = Sampler(CSMC(default_CSMC, 0))
   end
   for i in (alg.n_csmc_nodes+1):alg.n_nodes
-    samplers[i] = Sampler(SMC(default_SMC, i))
+    samplers[i] = Sampler(SMC(default_SMC, 0))
   end
 
   info = Dict{Symbol, Any}()
@@ -67,9 +67,11 @@ step(model::Function, spl::Sampler{IPMCMC}, VarInfos::Array{VarInfo}, is_first::
   log_zs = zeros(spl.alg.n_nodes)
 
   # Run SMC & CSMC nodes
+  VarInfos = @parallel (vcat) for j = 1:spl.alg.n_nodes
+    step(model, spl.info[:samplers][j], VarInfos[j])
+  end
   for j in 1:spl.alg.n_nodes
-    VarInfos[j] = step(model, spl.info[:samplers][j], VarInfos[j])
-    log_zs[j] = spl.info[:samplers][j].info[:logevidence][end]
+    log_zs[j] = getlogp(VarInfos[j])
   end
 
   # Resampling of CSMC nodes indices
