@@ -1,11 +1,12 @@
 abstract DistributionOnDistributions      <: Distribution
-abstract DiscreteRandomProbabilityMeasure <: DiscreteUnivariateDistribution
+abstract DiscreteRandomProbabilityMeasure <: DiscreteMultivariateDistribution
 abstract NormalizedRandomMeasure          <: DiscreteRandomProbabilityMeasure
 abstract PoissonKingmanMeasure            <: DiscreteRandomProbabilityMeasure
 
 ### DiscreteRandomProbabilityMeasure
 
 @inline vectorize(d::DiscreteRandomProbabilityMeasure, r::Float64) = Vector{Real}([r])
+@inline vectorize(d::DiscreteRandomProbabilityMeasure, r::Array{Float64,1}) = Vector{Real}(r)
 
 Distributions.logpdf{T<:Real}(d::DiscreteRandomProbabilityMeasure, x::T) = zero(x)
 
@@ -72,7 +73,7 @@ function Distributions.rand(d::NormalizedRandomMeasure)
         J = sampleWeight(d)
         push!(d.lengths, J)
         d.T_surplus = d.T_surplus - J
-        atom = rand(d.base)
+        atom = length(d.base) > 1 ? map(rand, d.base) : rand(d.base[1])
         push!(d.atoms, atom)
         return atom
     end
@@ -91,7 +92,7 @@ function Distributions.rand(d::PoissonKingmanMeasure)
         J = sampleWeight(d)
         push!(d.lengths, J/d.T)
         d.T_surplus = d.T_surplus - J
-        atom = rand(d.base)
+        atom = length(d.base) > 1 ? map(rand, d.base) : rand(d.base[1])
         push!(d.atoms, atom)
         return atom
     end

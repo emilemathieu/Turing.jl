@@ -1,7 +1,10 @@
 type mLogBetaPK   <:  DistributionOnDistributions
     alpha         ::  Float64
     beta          ::  Float64
-    base          ::  Distribution
+    base          ::  Array{Distribution}
+    mLogBetaPK(alpha::Float64, beta::Float64, base) = begin
+        new(alpha, beta, isa(base, Array) ? base : [base])
+    end
 end
 
 function Distributions.rand(d::mLogBetaPK)
@@ -11,14 +14,14 @@ end
 type mLogBetaPKsample <: PoissonKingmanMeasure
     alpha         ::  Float64
     beta          ::  Float64
-    base          ::  Distribution
-    atoms         ::  Dict{Int64,Float64}
-    sticks        ::  Vector{Float64}
+    base          ::  Array{Distribution}
+    atoms         ::  Vector{Any}
+    lengths       ::  Vector{Float64}
     T             ::  Float64
     T_surplus     ::  Float64
     mLogBetaPKsample(alpha::Float64, beta::Float64, base) = begin
         T = rand(Beta(alpha, beta))
-        new(alpha, beta, base, Dict{Int64,Float64}(), Array(Float64,0), T, T)
+        new(alpha, beta, base, [], Array(Float64,0), T, T)
     end
 end
 
