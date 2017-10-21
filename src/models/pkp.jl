@@ -1,3 +1,5 @@
+## -log Beta PKP
+
 type mLogBetaPK   <:  DistributionOnDistributions
     alpha         ::  Float64
     beta          ::  Float64
@@ -16,7 +18,7 @@ type mLogBetaPKsample <: PoissonKingmanMeasure
     beta          ::  Float64
     base          ::  Array{Distribution}
     atoms         ::  Vector{Any}
-    lengths       ::  Vector{Float64}
+    weights       ::  Vector{Float64}
     T             ::  Float64
     T_surplus     ::  Float64
     mLogBetaPKsample(alpha::Float64, beta::Float64, base) = begin

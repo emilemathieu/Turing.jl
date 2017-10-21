@@ -2,6 +2,7 @@ abstract DistributionOnDistributions      <: Distribution
 abstract DiscreteRandomProbabilityMeasure <: DiscreteMultivariateDistribution
 abstract NormalizedRandomMeasure          <: DiscreteRandomProbabilityMeasure
 abstract PoissonKingmanMeasure            <: DiscreteRandomProbabilityMeasure
+abstract NormalizedRandomMeasureRec       <: DiscreteRandomProbabilityMeasure
 
 ### DiscreteRandomProbabilityMeasure
 
@@ -37,13 +38,14 @@ end
 
 # NOTE: Explicit recursion can be slower, especially when variance is big
 # function Distributions.rand(d::DiscreteRandomProbabilityMeasure)
-#     index = makeSticks(d)
-#     if !haskey(d.atoms, index)
-#         d.atoms[index] = rand(d.base)
-#     end
-#     # println(d.atoms[index])
-#     return d.atoms[index]
-# end
+function Distributions.rand(d::NormalizedRandomMeasureRec)
+    index = makeSticks(d)
+    if !haskey(d.atoms, index)
+        # d.atoms[index] = rand(d.base)
+        d.atoms[index] = length(d.base) > 1 ? map(rand, d.base) : rand(d.base[1])
+    end
+    return d.atoms[index]
+end
 
 # NOTE: Use metaprograming to generate this function ?
 # function Distributions.rand(d::DistributionOnDistributions)
@@ -64,14 +66,14 @@ function Distributions.rand(d::NormalizedRandomMeasure)
     u = rand()
     thresh = 1 - d.T_surplus
     if u < thresh
-        index = 1; c = d.lengths[1]
+        index = 1; c = d.weights[1]
         while c < u
-          c += d.lengths[index += 1]
+          c += d.weights[index += 1]
         end
         return d.atoms[index]
     else
         J = sampleWeight(d)
-        push!(d.lengths, J)
+        push!(d.weights, J)
         d.T_surplus = d.T_surplus - J
         atom = length(d.base) > 1 ? map(rand, d.base) : rand(d.base[1])
         push!(d.atoms, atom)
@@ -83,14 +85,14 @@ function Distributions.rand(d::PoissonKingmanMeasure)
     u = rand()
     thresh = 1 - d.T_surplus/d.T
     if u < thresh
-        index = 1; c = d.lengths[1]
+        index = 1; c = d.weights[1]
         while c < u
-            c += d.lengths[index += 1]
+          c += d.weights[index += 1]
         end
         return d.atoms[index]
     else
         J = sampleWeight(d)
-        push!(d.lengths, J/d.T)
+        push!(d.weights, J/d.T)
         d.T_surplus = d.T_surplus - J
         atom = length(d.base) > 1 ? map(rand, d.base) : rand(d.base[1])
         push!(d.atoms, atom)

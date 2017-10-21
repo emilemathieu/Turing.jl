@@ -1,3 +1,5 @@
 include("rpm.jl")
 include("dp.jl")
 include("pkp.jl")
+include("nigp.jl")
+include("generalizedinversegaussian.jl")
