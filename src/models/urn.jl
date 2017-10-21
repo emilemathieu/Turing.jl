@@ -2,31 +2,56 @@ using Memoize
 import Turing.vectorize
 import Base.rand, Base.getindex
 
-function pickStick(sticks, J)
-    if Bool(rand(Bernoulli(sticks(J))))
-        return J
+## DP
+
+abstract DistributionOnDistributions      <: Distribution
+abstract DiscreteRandomProbabilityMeasure <: DiscreteMultivariateDistribution
+abstract NormalizedRandomMeasure          <: DiscreteRandomProbabilityMeasure
+
+type DP           <:  DistributionOnDistributions
+    alpha         ::  Real
+end
+
+function Distributions.rand(d::DP)
+    return DPsample(d.alpha)
+end
+
+type DPsample <: NormalizedRandomMeasure
+    alpha         ::  Float64
+    weights       ::  Vector{Float64}
+    T_surplus     ::  Float64
+    DPsample(alpha::Float64) = begin
+        new(alpha, Array(Float64,0), 1)
+    end
+end
+
+function sampleStick(d::DPsample)
+    return rand(Beta(1, d.alpha))
+end
+
+
+@inline vectorize(d::DiscreteRandomProbabilityMeasure, r::Float64) = Vector{Real}([r])
+@inline vectorize(d::DiscreteRandomProbabilityMeasure, r::Int) = Vector{Real}([r])
+Distributions.logpdf{T<:Real}(d::DiscreteRandomProbabilityMeasure, x::T) = zero(x)
+
+function sampleWeight(d::NormalizedRandomMeasure)
+    return sampleStick(d) * d.T_surplus
+end
+
+function Distributions.rand(d::NormalizedRandomMeasure)
+    u = rand()
+    thresh = 1 - d.T_surplus
+    if u < thresh
+        return wsample(d.weights)
     else
-        return pickStick(sticks, J+1)
+        J = sampleWeight(d)
+        push!(d.weights, J)
+        d.T_surplus = d.T_surplus - J
+        return length(d.weights)
     end
 end
 
-function makeSticks(alpha)
-    @memoize function sticks(index)
-      return rand(Beta(1, alpha))
-    end
-    return () -> pickStick(sticks, 1)
-end
-
-type PolyaUrn <: DiscreteUnivariateDistribution
-    alpha :: Float64
-    makeSticks :: Function
-    PolyaUrn(alpha::Float64) = new(alpha, makeSticks(alpha))
-end
-
-function rand(urn::PolyaUrn)
-    res = urn.makeSticks()
-    return res
-end
+## PolyaUrn
 
 immutable IArray <: ContinuousMultivariateDistribution
     base
@@ -56,8 +81,6 @@ function rand(d::IArray)
     return IArraySample(d.base)
 end
 
-Distributions.logpdf(d::PolyaUrn, x::Int64) = zero(x)
-# Distributions.logpdf{T<:Real}(d::PolyaUrn, x::T) = zero(x)
 @inline vectorize(d::IArray, r::IArraySample) = Vector{Real}(collect(values(r.dict)))
 
 using Turing
@@ -67,30 +90,38 @@ meanMean = 2.17; meanPrecision = 0.63; precisionShape = 2.0; precisionInvScale =
 
 @model infiniteMixture(y) = begin
   N = length(y)
-  m ~ Normal(meanMean, 1.0/sqrt(meanPrecision))
-  s ~ Gamma(precisionShape, 1.0/precisionInvScale)
-  x = rand(IArray(Normal(m, 1.0/sqrt(s)))) # Infinite Array
-  urn = PolyaUrn(1.72)
+  # m ~ Normal(meanMean, 1.0/sqrt(meanPrecision))
+  # s ~ Gamma(precisionShape, 1.0/precisionInvScale)
+  # H0 = rand(IArray(Normal(meanMean, 1.0/sqrt(meanPrecision)))) # Infinite Array
+  P = rand(DP(1.72))
 
   x, z = tzeros(N), tzeros(Int, N)
+  k = 0
   for i in 1:N
-    z[i] ~ urn
-    x[i] = x[z[i]]
+    println(i)
+    z[i] ~ P
+    if z[i] > k
+      k += 1
+      x[k] ~ Normal(meanMean, 1.0/sqrt(meanPrecision))
+    end
+    # x[i] = x[z[i]]
     # x[i] ~ x(z[i])
-    y[i] ~ Normal(x[i], 1.0/sqrt(s))
+    y[i] ~ Normal(x[z[i]], 1.0/sqrt(1))
   end
 end
 
-# sampler = Gibbs(3, CSMC(50, 1, :z), HMC(1, 0.2, 3, :m, :s))
-sampler = Gibbs(100, CSMC(40, 1, :z), HMC(1, 0.2, 3, :m, :s))
-results = sample(infiniteMixture(data), sampler)
-
-mixtureComponentsRes = results[:z]
-mixtureComponents = zeros(length(data), length(mixtureComponentsRes))
-for j in 1:size(mixtureComponents,2)
-    mixtureComponents[:,j] = mixtureComponentsRes[j]
-end
-include("plot.jl")
-linescatter(mixtureComponents[1,:],mixtureComponents[end,:])
-linescatter(results[:m])
-plot_histogram(results[:m])
+# sampler = Gibbs(2, CSMC(1, 1, :z), HMC(1, 0.2, 3, :x))
+sampler = SMC(5)
+model = infiniteMixture(data)
+# sampler = Gibbs(100, CSMC(40, 1, :z), HMC(1, 0.2, 3, :m, :s))
+results = sample(model, sampler)
+#
+# mixtureComponentsRes = results[:z]
+# mixtureComponents = zeros(length(data), length(mixtureComponentsRes))
+# for j in 1:size(mixtureComponents,2)
+#     mixtureComponents[:,j] = mixtureComponentsRes[j]
+# end
+# include("plot.jl")
+# linescatter(mixtureComponents[1,:],mixtureComponents[end,:])
+# linescatter(results[:m])
+# plot_histogram(results[:m])
