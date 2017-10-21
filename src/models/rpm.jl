@@ -66,10 +66,7 @@ function Distributions.rand(d::NormalizedRandomMeasure)
     u = rand()
     thresh = 1 - d.T_surplus
     if u < thresh
-        index = 1; c = d.weights[1]
-        while c < u
-          c += d.weights[index += 1]
-        end
+        index = wsample(d.weights)
         return d.atoms[index]
     else
         J = sampleWeight(d)
@@ -85,10 +82,7 @@ function Distributions.rand(d::PoissonKingmanMeasure)
     u = rand()
     thresh = 1 - d.T_surplus/d.T
     if u < thresh
-        index = 1; c = d.weights[1]
-        while c < u
-          c += d.weights[index += 1]
-        end
+        index = wsample(d.weights)
         return d.atoms[index]
     else
         J = sampleWeight(d)
