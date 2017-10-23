@@ -58,29 +58,12 @@ end
 # N_particles = 50
 
 # For the benefit of the compiler:
-sampler = SMC(1)
-results = sample(infiniteMixtureStick(data), sampler)
-results = sample(infiniteMixtureLazy(data), sampler)
-
-N_particle_array = [1 5 10 50 100 500 1000]
-N_reruns = 10
-models = [infiniteMixtureStick, infiniteMixtureLazy]
-
-timings = []
-for model = models
-  for (i, N_particles) = enumerate(N_particle_array)
-    for rerun = 1:10
-      sampler = SMC(N_particles)
-      tic()
-      results = sample(model(data), sampler)
-      t = toc()
-      append!(timings, [(i, rerun, model, t)])
-    end
-  end
-end
-
-println(timings)
-#plot(timings)
+sampler = SMC(3)
+@profile sample(infiniteMixtureStick(data), sampler)
+Base.Profile.print()
+Base.Profile.clear()
+@profile sample(infiniteMixtureLazy(data), sampler)
+Base.Profile.print()
 
 
 # sampler = CSMC(20, 50)

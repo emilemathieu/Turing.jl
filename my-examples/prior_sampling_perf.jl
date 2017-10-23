@@ -17,7 +17,7 @@ K = 10000
 function sample_RPM(alpha, beta, K, N)
   for k in 1:K
     samples = zeros(N)
-    P = rand(DP(alpha, Normal(m, 1.0/sqrt(s))))
+    P = rand(DP(alpha, Normal(m, 1.0/sqrt(s)), false))
     # P = rand(mLogBetaPK(alpha, beta, Normal(m, 1.0/sqrt(s))))
     for i in 1:N
       samples[i] = rand(P)
@@ -28,7 +28,7 @@ end
 function sample_RPM2(alpha, beta, K, N)
   for k in 1:K
     samples2 = zeros(N)
-    P = rand(DP2(alpha, Normal(m, 1.0/sqrt(s))))
+    P = rand(DP(alpha, Normal(m, 1.0/sqrt(s)), true))
     # P = rand(mLogBetaPK2(alpha, beta, Normal(m, 1.0/sqrt(s))))
     for i in 1:N
       samples2[i] = rand(P)
@@ -49,4 +49,6 @@ for j in 1:length(as)
   time[j] = @elapsed sample_RPM(a, b, K, N)
   time2[j] = @elapsed sample_RPM2(a, b, K, N)
 end
+println(time)
+println(time2)
 linescatter(time,time2,as,as,"time (s)","alpha","stick-breaking","size-biased")
