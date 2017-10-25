@@ -1,5 +1,7 @@
 include("rpm.jl")
 include("dp.jl")
+include("pyp.jl")
 include("pkp.jl")
 include("nigp.jl")
-include("generalizedinversegaussian.jl")
+include("nggp.jl")
+include("exptiltedsigma.jl")
