@@ -4,11 +4,11 @@
 type NGGP   <:  DistributionOnDistributions
     sigma         ::  Float64
     b             ::  Float64
-    base          ::  Array{Distribution}
+    base          ::  Distribution
     recursive     ::  Bool
     NGGP(sigma::Float64, b::Float64, base, recursive::Bool=false) = begin
         if sigma != 0.5 error("only handle sigma=1/2 for now") end
-        new(0.5, b, isa(base, Array) ? base : [base], recursive)
+        new(0.5, b, base, recursive)
     end
 end
 
@@ -19,7 +19,7 @@ end
 type NGGPsample <: PoissonKingmanMeasure
     sigma         ::  Float64
     b             ::  Float64
-    base          ::  Array{Distribution}
+    base          ::  Distribution
     atoms         ::  Vector{Any}
     weights       ::  Vector{Float64}
     T             ::  Float64
@@ -33,7 +33,7 @@ end
 type NGGPRecsample <: PoissonKingmanMeasureRec
     sigma         ::  Float64
     b             ::  Float64
-    base          ::  Array{Distribution}
+    base          ::  Distribution
     atoms         ::  Dict{Int, Any}
     sticks        ::  Array{Float64}
     T             ::  Float64

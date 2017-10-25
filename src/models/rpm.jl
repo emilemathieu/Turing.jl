@@ -42,8 +42,7 @@ end
 function Distributions.rand(d::Union{NormalizedRandomMeasureRec,PoissonKingmanMeasureRec})
     index = makeSticks(d)
     if !haskey(d.atoms, index)
-        # d.atoms[index] = rand(d.base)
-        d.atoms[index] = length(d.base) > 1 ? map(rand, d.base) : rand(d.base[1])
+        d.atoms[index] = rand(d.base)
     end
     return d.atoms[index]
 end
@@ -73,7 +72,7 @@ function Distributions.rand(d::NormalizedRandomMeasure)
         J = sampleWeight(d)
         push!(d.weights, J)
         d.T_surplus = d.T_surplus - J
-        atom = length(d.base) > 1 ? map(rand, d.base) : rand(d.base[1])
+        atom = rand(d.base)
         push!(d.atoms, atom)
         return atom
     end
@@ -89,7 +88,7 @@ function Distributions.rand(d::PoissonKingmanMeasure)
         J = sampleWeight(d)
         push!(d.weights, J/d.T)
         d.T_surplus = d.T_surplus - J
-        atom = length(d.base) > 1 ? map(rand, d.base) : rand(d.base[1])
+        atom = rand(d.base)
         push!(d.atoms, atom)
         return atom
     end

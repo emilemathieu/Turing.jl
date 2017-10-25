@@ -1,10 +1,10 @@
 type PYP           <:  DistributionOnDistributions
     alpha         ::  Float64
     theta         ::  Float64
-    base          ::  Array{Distribution}
+    base          ::  Distribution
     recursive     ::  Bool
     PYP(alpha::Float64, theta::Float64, base, recursive::Bool=false) = begin
-        new(alpha, theta, isa(base, Array) ? base : [base], recursive)
+        new(alpha, theta, base, recursive)
     end
 end
 
@@ -15,11 +15,11 @@ end
 type PYPsample <: NormalizedRandomMeasure
     alpha         ::  Float64
     theta         ::  Float64
-    base          ::  Array{Distribution}
+    base          ::  Distribution
     atoms         ::  Vector{Any}
     weights       ::  Vector{Float64}
     T_surplus     ::  Float64
-    PYPsample(alpha::Float64, theta::Float64, base::Array{Distribution}) = begin
+    PYPsample(alpha::Float64, theta::Float64, base::Distribution) = begin
         new(alpha, theta, base, [], Array(Float64,0), 1)
     end
 end
@@ -27,10 +27,10 @@ end
 type PYPRecsample <: NormalizedRandomMeasureRec
     alpha         ::  Float64
     theta         ::  Float64
-    base          ::  Array{Distribution}
+    base          ::  Distribution
     atoms         ::  Dict{Int, Any}
     sticks        ::  Array{Float64}
-    PYPRecsample(alpha::Float64, theta::Float64, base::Array{Distribution}) = begin
+    PYPRecsample(alpha::Float64, theta::Float64, base::Distribution) = begin
         new(alpha, theta, base, Dict{Int, Any}(), Array(Float64,0))
     end
 end

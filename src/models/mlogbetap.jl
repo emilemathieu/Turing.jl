@@ -3,9 +3,9 @@
 type mLogBetaPK   <:  DistributionOnDistributions
     alpha         ::  Float64
     beta          ::  Float64
-    base          ::  Array{Distribution}
+    base          ::  Distribution
     mLogBetaPK(alpha::Float64, beta::Float64, base) = begin
-        new(alpha, beta, isa(base, Array) ? base : [base])
+        new(alpha, beta, base)
     end
 end
 
@@ -16,7 +16,7 @@ end
 type mLogBetaPKsample <: PoissonKingmanMeasure
     alpha         ::  Float64
     beta          ::  Float64
-    base          ::  Array{Distribution}
+    base          ::  Distribution
     atoms         ::  Vector{Any}
     weights       ::  Vector{Float64}
     T             ::  Float64

@@ -1,9 +1,9 @@
 type DP           <:  DistributionOnDistributions
     alpha         ::  Real
-    base          ::  Array{Distribution}
+    base          ::  Distribution
     recursive     ::  Bool
     DP(alpha::Float64, base, recursive::Bool=false) = begin
-        new(alpha, isa(base, Array) ? base : [base], recursive)
+        new(alpha, base, recursive)
     end
 end
 
@@ -13,21 +13,21 @@ end
 
 type DPsample <: NormalizedRandomMeasure
     alpha         ::  Float64
-    base          ::  Array{Distribution}
+    base          ::  Distribution
     atoms         ::  Vector{Any}
     weights       ::  Vector{Float64}
     T_surplus     ::  Float64
-    DPsample(alpha::Float64, base::Array{Distribution}) = begin
+    DPsample(alpha::Float64, base::Distribution) = begin
         new(alpha, base, [], Array(Float64,0), 1)
     end
 end
 
 type DPRecsample <: NormalizedRandomMeasureRec
     alpha         ::  Float64
-    base          ::  Array{Distribution}
+    base          ::  Distribution
     atoms         ::  Dict{Int, Any}
     sticks        ::  Array{Float64}
-    DPRecsample(alpha::Float64, base::Array{Distribution}) = begin
+    DPRecsample(alpha::Float64, base::Distribution) = begin
         new(alpha, base, Dict{Int, Any}(), Array(Float64,0))
     end
 end

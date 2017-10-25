@@ -14,11 +14,10 @@ precisionInvScale = precisionInvScaleAlpha / precisionInvScaleBeta
 
 @model infiniteMixture(y) = begin
   N = length(y)
-  s ~ Gamma(precisionShape, 1.0/precisionInvScale)
+  # s ~ Gamma(precisionShape, 1.0/precisionInvScale)
   # alpha ~ Gamma(1.0, 1.0)
   alpha = 1.5
-  # P = rand(DP(alpha, Normal(meanMean, 1.0/sqrt(meanPrecision))))
-  P = rand(mLogBetaPK(1.0, 2.0, Normal(meanMean, 1.0/sqrt(meanPrecision))))
+  P = rand(DP(alpha, Normal(meanMean, 1.0/sqrt(meanPrecision))))
 
   x = zeros(N)
   for i in 1:N
@@ -27,34 +26,17 @@ precisionInvScale = precisionInvScaleAlpha / precisionInvScaleBeta
   end
 end
 
-@model infiniteMixture2(y) = begin
-  N = length(y)
-  alpha = 1.5
-  # P = rand(DP(alpha, [Normal(meanMean, 1.0/sqrt(meanPrecision)),Gamma(precisionShape, 1.0/precisionInvScale)]))
-  P = rand(mLogBetaPK(1.0, 2.0, [Normal(meanMean, 1.0/sqrt(meanPrecision)),Gamma(precisionShape, 1.0/precisionInvScale)]))
-
-  x = zeros(N,2)
-  for i in 1:N
-    x[i,1:2] ~ P
-    y[i] ~ Normal(x[i,1], 1.0/sqrt(x[i,2]))
-  end
-end
-
-# s_proposal = (s) -> Normal(s, 0.1*std(Gamma(precisionShape, 1.0/precisionInvScale)))
-
-N_samples = 50
-N_particles = 50
-
-sampler = SMC(10)
+sampler = SMC(100)
 # sampler = CSMC(20, 50)
 # sampler = Gibbs(N_samples, CSMC(50, 1, :x), HMC(1, 0.2, 3, :s))
 # sampler = PMMH(N_samples, SMC(40, :x), :s)
 # sampler = PMMH(N_samples, SMC(N_particles, :x), (:s, s_proposal)) # 50 & 50
 # sampler = Gibbs(5, IPMCMC(100, 1, 3, 1, :x), HMC(1, 0.2, 3, :s))
 # sampler = IPMCMC(100, 10, 8, 4)
-# sampler = IPMCMC(15, 25, 4, 2)
+# sampler = IPMCMC(15, 25, 4)
 # sampler = IPMCMC(15, 25, 4, 2, HMC(1, 0.2, 3, :s), :x)
-results = sample(infiniteMixture2(data), sampler)
+results = sample(infiniteMixture(data), sampler)
+println([length(unique(xt)) for xt in results[:x]])
 
 # M = 20
 # mixtureComponentsESSquartiles = computeMixtureComponentsESSquartiles(M, T, (infiniteMixture(data), sampler, :x)
