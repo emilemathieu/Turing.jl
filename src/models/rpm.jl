@@ -3,6 +3,7 @@ abstract DiscreteRandomProbabilityMeasure <: DiscreteMultivariateDistribution
 abstract NormalizedRandomMeasure          <: DiscreteRandomProbabilityMeasure
 abstract PoissonKingmanMeasure            <: DiscreteRandomProbabilityMeasure
 abstract NormalizedRandomMeasureRec       <: DiscreteRandomProbabilityMeasure
+abstract PoissonKingmanMeasureRec         <: DiscreteRandomProbabilityMeasure
 
 ### DiscreteRandomProbabilityMeasure
 
@@ -29,7 +30,7 @@ function makeSticks(d::DiscreteRandomProbabilityMeasure)
     return pickStick(d::DiscreteRandomProbabilityMeasure, sticks, 1)
 end
 
-function sampleStick(d::PoissonKingmanMeasure)
+function sampleStick(d::Union{PoissonKingmanMeasure,PoissonKingmanMeasureRec})
     J = sampleWeight(d)
     V = J / d.T_surplus
     d.T_surplus = d.T_surplus - J
@@ -38,7 +39,7 @@ end
 
 # NOTE: Explicit recursion can be slower, especially when variance is big
 # function Distributions.rand(d::DiscreteRandomProbabilityMeasure)
-function Distributions.rand(d::NormalizedRandomMeasureRec)
+function Distributions.rand(d::Union{NormalizedRandomMeasureRec,PoissonKingmanMeasureRec})
     index = makeSticks(d)
     if !haskey(d.atoms, index)
         # d.atoms[index] = rand(d.base)
