@@ -9,11 +9,6 @@ data -= mean(data)
 
 mu_0 = 0.0; sigma_1 = 10; sigma_0 = 4*sigma_1;
 
-# meanMean = 2.173; meanPrecision = 0.635; precisionShape = 2.0;
-# precisionInvScaleAlpha = 0.4/2; precisionInvScaleBeta = 6.346
-# precisionInvScale = precisionInvScaleAlpha / precisionInvScaleBeta
-# precisionInvScale ~ Beta(precisionInvScaleAlpha, precisionInvScaleBeta)
-
 function Base.convert(::Type{Float64}, x::Array{Float64,1})
   if length(x) > 1 error("FAIL: Cannot `convert` an object of type Array{Float64,1} to an object of type Float64") end
   return x[1]
@@ -21,8 +16,8 @@ end
 
 @model infiniteMixture(y) = begin
   N = length(y)
-  P = rand(DP(1.5, Normal(mu_0, sigma_0)))
-  # P = rand(NGGP(0.5, 1.0, Normal(mu_0, sigma_0)))
+  # P = rand(DP(1.5, Normal(mu_0, sigma_0)))
+  P = rand(NGGP(0.5, 1.0, Normal(mu_0, sigma_0)))
 
   x = tzeros(N)
   for i in 1:N
@@ -38,7 +33,7 @@ end
 # sampler = PMMH(N_samples, SMC(N_particles, :x), (:s, s_proposal)) # 50 & 50
 # sampler = Gibbs(5, IPMCMC(100, 1, 3, 1, :x), HMC(1, 0.2, 3, :s))
 # sampler = IPMCMC(100, 10, 8, 4)
-sampler = IPMCMC(50, 25, 4)
+sampler = IPMCMC(15, 100, 4)
 # sampler = IPMCMC(15, 25, 4, 2, HMC(1, 0.2, 3, :s), :x)
 results = sample(infiniteMixture(data), sampler)
 nb_clusters = [length(unique(xt)) for xt in results[:x]]
