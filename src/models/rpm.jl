@@ -13,10 +13,13 @@ abstract PoissonKingmanMeasureRec         <: DiscreteRandomProbabilityMeasure
 Distributions.logpdf{T<:Real}(d::DiscreteRandomProbabilityMeasure, x::T) = zero(x)
 
 function pickStick(d::DiscreteRandomProbabilityMeasure, sticks::Function, k::Int64)
-    if Bool(rand(Bernoulli(sticks(d, k))))
-        return k
-    else
-        return pickStick(d, sticks, k+1)
+    j = k
+    while true
+        if Bool(rand(Bernoulli(sticks(d, j))))
+            return j
+        else
+            j += 1
+        end
     end
 end
 

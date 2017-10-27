@@ -9,7 +9,7 @@ using Turing
 
 alphas = [0.1 0.5 0.75]
 thetas = [1.0 10.0]
-samples = [1 10 100 1000]
+samples = [1 10 100 1000 10000]
 recursives = [true false]
 
 timings = []
