@@ -39,7 +39,7 @@ type NGGPRecsample <: PoissonKingmanMeasureRec
     T             ::  Float64
     T_surplus     ::  Float64
     NGGPRecsample(sigma::Float64, b::Float64, base) = begin
-        T = rand(ExpTiltedSigma(sigma, b^(1/sigma)))
+        T = rand(ExpTiltedSigma(sigma, b))
         new(sigma, b, base, Dict{Int, Any}(), Array(Float64,0), T, T)
     end
 end
