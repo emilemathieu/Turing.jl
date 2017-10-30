@@ -25,7 +25,7 @@ end
 
 function makeSticks(d::DiscreteRandomProbabilityMeasure)
     function sticks(d::DiscreteRandomProbabilityMeasure, index::Int64)
-        if length(d.sticks) <= index
+        if length(d.sticks) < index
             push!(d.sticks, sampleStick(d))
         end
         return d.sticks[index]
