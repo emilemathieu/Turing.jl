@@ -36,9 +36,9 @@ type PYPRecsample <: NormalizedRandomMeasureRec
 end
 
 function sampleStick(d::PYPsample)
-    return rand(Beta(d.alpha, d.theta + (length(d.weights) - 1) * d.alpha))
+    return rand(Beta(1 - d.alpha, d.theta + (length(d.weights) + 1) * d.alpha))
 end
 
 function sampleStick(d::PYPRecsample)
-    return rand(Beta(d.alpha, d.theta + (length(d.sticks) - 1) * d.alpha))
+    return rand(Beta(1 - d.alpha, d.theta + (length(d.sticks) + 1) * d.alpha))
 end
