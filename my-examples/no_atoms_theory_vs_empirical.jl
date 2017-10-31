@@ -73,9 +73,10 @@ function EmpiricalNoAtoms(N,n_samples,alpha,theta, recursive)
     end
   end
 
-  E_n = sum(s_nm, 1)/n_samples
+  E_n = mean(s_nm, 1)
+  s_n = std(s_nm, 1)
 
-  return E_n
+  return E_n, s_n
 
 end
 
@@ -85,25 +86,32 @@ using Plots
 # pyplot()
 
 M = 1500
-N = 65
+N_theory = 65
+N_empirical = 1000
 n_samples = 10000
 
 alpha = 0.25
 theta = 0.1 # enter this as a float
 
-theory = TheoryExpNoAtoms(N,M,alpha,theta, true)
-theory_nonrec = TheoryExpNoAtoms(N,M,alpha, theta, false)
-empirical = EmpiricalNoAtoms(N, n_samples, alpha, theta, true)
-empirical_nonrec = EmpiricalNoAtoms(N, n_samples, alpha, theta, false)
-println(theory)
-println(empirical)
+empirical_rec, s_rec = EmpiricalNoAtoms(N_empirical, n_samples, alpha, theta, true)
+empirical_nonrec, s_nonrec = EmpiricalNoAtoms(N_empirical, n_samples, alpha, theta, false)
+
+theory = TheoryExpNoAtoms(N_theory,M,alpha,theta, true)
+theory_nonrec = TheoryExpNoAtoms(N_theory,M,alpha, theta, false)
+
+println(empirical_rec)
 println(empirical_nonrec)
 println(theory_nonrec)
-plot(theory')
-plot!(empirical')
-plot!(empirical_nonrec')
+println(theory)
+
+
+plot(empirical_rec', yerrors=s_rec')
+plot!(empirical_nonrec', yerrors=s_nonrec')
+plot!(theory')
 plot!(theory_nonrec)
-ylims!((1, 8))
+
+
+#ylims!((1, 8))
 #plot(log.(1:M),log.(P_nm[1:M,1:50]),xlabel="m",ylabel="\ln P(M_n \leq m)",yrotation=90,legend=false)
 #loglog(P_nm[1:M,1:50])
 # plot(p_nm[1:M,1:60])
