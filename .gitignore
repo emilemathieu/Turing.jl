@@ -7,3 +7,4 @@ tmp/
 *.jld
 .ipynb_checkpoints
 .project
+.tags*
