@@ -98,7 +98,15 @@ export TArray, tzeros, localcopy, IArray
 
 export @sym_str
 
-export UnivariateGMM2, Flat, FlatPos
+export UnivariateGMM2, Flat, FlatPos, Dirac
+
+# Dirac Distributions
+immutable Dirac <: DiscreteMultivariateDistribution
+    atom
+end
+Distributions.rand(d::Dirac) = d.atom
+# Distributions.logpdf(d::Dirac, x) = x == d.atom ? 0 : -Inf
+# @inline vectorize(d::Dirac, r::Array{Float64,1}) = Vector{Real}(r)
 
 ##################
 # Turing helpers #
