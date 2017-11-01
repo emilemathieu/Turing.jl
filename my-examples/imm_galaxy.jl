@@ -35,12 +35,13 @@ end
 
 sampler = SMC(1000, resampleSystematic, .5, false, Set(), 0)
 # sampler = CSMC(100, 20)
-permutation = randperm(length(data))
-results = sample(infiniteMixture(data[permutation]), sampler)
+# permutation = randperm(length(data))
+# results = sample(infiniteMixture(data[permutation]), sampler)
 # nb_clusters = [length(unique(xt)) for xt in results[:x]]
 
 function compute_predictive_density(results, xaxis)
     a = results[:a]; w = results[:w]
+    particles_w = [sample.weight for sample in results.value2]
     M = length(a)
     y = zeros(M, length(xaxis))
     @inbounds for i in 1:length(xaxis)
@@ -55,25 +56,49 @@ function compute_predictive_density(results, xaxis)
           end
       end
     end
-    particles_w = [sample.weight for sample in results.value2]
     yaxis = sum(y.*particles_w,1)[1,:]*30
     # yaxis = mean(y, 1)[1,:]*30
     return yaxis
 end
 
-xaxis = linspace(0.8*minimum(data),1.2*maximum(data),60)
-yaxis = compute_predictive_density(results, xaxis)
+xaxis = linspace(0.7*minimum(data),1.0*maximum(data),80)
+
+SMC_sweeps = 5
+yaxis = zeros(length(xaxis))
+for i in 1:SMC_sweeps
+    println("SMC sweep: ", i)
+    permutation = randperm(length(data))
+    results = sample(infiniteMixture(data[permutation]), sampler)
+    yaxis += compute_predictive_density(results, xaxis)
+end
+yaxis /= SMC_sweeps
+
+# yaxis = compute_predictive_density(results, xaxis)
 trace1 = scatter(;x=xaxis, y=yaxis, mode="lines+markers")
 trace2 = histogram(x=data, opacity=0.75, name="")
 p = plot([trace1, trace2])
 
-# mixtureComponentsRes = results[:x]
-# T = 82
-# mixtureComponents = zeros(T, length(mixtureComponentsRes))
-# for j in 1:size(mixtureComponents,2)
-#     mixtureComponents[:,j] = mixtureComponentsRes[j]
-# end
-# linescatter(mixtureComponents[1,:],mixtureComponents[10,:],1:length(mixtureComponentsRes),1:length(mixtureComponentsRes),"X(t)","x", "X(t=1)","X(t=82)")
+
+
+
+
+function linescatter(y0,y1,x0=1:length(y0),x1=1:length(y1),yname="y",xname="x", name1="", name2="")
+    trace1 = scatter(;x=x0, y=y0, mode="lines+markers",name=name1)
+    trace2 = scatter(;x=x1, y=y1, mode="lines+markers",name=name2)
+    layout = Layout(plot_bgcolor="white",paper_bgcolor="white",yaxis=attr(title=yname,showgrid=false,showline=false),xaxis=attr(title=xname,showgrid=false))
+    plot([trace1, trace2], layout)
+end
+
+function plot_2_components(results, index1, index2)
+    mixtureComponentsRes = results[:x]
+    T = 82
+    mixtureComponents = zeros(T, length(mixtureComponentsRes))
+    for j in 1:size(mixtureComponents,2)
+        mixtureComponents[:,j] = mixtureComponentsRes[j]
+    end
+    linescatter(mixtureComponents[index1,:],mixtureComponents[index2,:],1:length(mixtureComponentsRes),1:length(mixtureComponentsRes),"X(t)","x", "X(t=1)","X(t=82)")
+end
+# plot_2_components(results, 1, 82)
 
 function compute_coclustering(results)
     T = 82
