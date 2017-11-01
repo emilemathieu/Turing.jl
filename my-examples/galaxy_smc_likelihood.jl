@@ -5,7 +5,8 @@ data = [9172.0;9350.0;9483.0;9558.0;9775.0;10227.0;10406.0;16084.0;16170.0;18419
 data /= 1e4
 data -= mean(data)
 
-mu_0 = 0.0; sigma_1 = 10; sigma_0 = 4*sigma_1;
+mu_0 = mean(data); sigma_0 = 1/sqrt(0.635); sigma_1 = sigma_0/15
+# data -= mean(data) # mu_0 = 0.0; sigma_1 = .1; sigma_0 = 4*sigma_1;
 
 # unexplained, but potentially important code
 @inline realpart(r::Real)             = r
@@ -28,13 +29,13 @@ mu_0 = 0.0; sigma_1 = 10; sigma_0 = 4*sigma_1;
 end
 
 # hyperparameters
-alpha = 0.1
-theta = 0.25
+alpha = 0.5
+theta = 1.
 
 # sampling using SMC
 w = zeros(100, 2)
 t = zeros(100, 2)
-for i=1:100
+for i=1:10
   println("Iteration ", i)
   for (j, recursive) = enumerate([true, false])
     tic()
