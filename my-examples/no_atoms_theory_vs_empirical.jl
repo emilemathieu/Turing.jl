@@ -74,7 +74,7 @@ function EmpiricalNoAtoms(N,n_samples,alpha,theta, recursive)
   end
 
   E_n = mean(s_nm, 1)
-  s_n = std(s_nm, 1)
+  s_n = 1.96*std(s_nm, 1)/sqrt(n_samples)
 
   return E_n, s_n
 
@@ -86,7 +86,7 @@ using Plots
 # pyplot()
 
 M = 1500
-N_theory = 65
+N_theory = 50
 N_empirical = 1000
 n_samples = 10000
 
@@ -105,10 +105,10 @@ println(theory_nonrec)
 println(theory)
 
 
-plot(empirical_rec', yerrors=s_rec')
-plot!(empirical_nonrec', yerrors=s_nonrec')
-plot!(theory')
-plot!(theory_nonrec)
+plot(empirical_rec', ribbon=s_rec', fillalpha=.5, label="empirical, recursive")
+plot!(empirical_nonrec', ribbon=s_nonrec', fillalpha=.5, label="empirical, laziest")
+plot!(theory', label="theoretical, recursive")
+plot!(theory_nonrec, label="theoretical, laziest")
 
 
 #ylims!((1, 8))
