@@ -77,12 +77,14 @@ function sample(model::Function, alg::SMC)
   TraceType = spl.alg.use_replay ? TraceR : TraceC
   particles = ParticleContainer{TraceType}(model)
   push!(particles, spl.alg.n_particles, spl, VarInfo())
-
+  i = 1
   while consume(particles) != Val{:done}
+    println("consume: ", i)
     ess = effectiveSampleSize(particles)
-    if ess <= spl.alg.resampler_threshold * length(particles)
+    if ess <= spl.alg.resampler_threshold * length(particles) && i < 82
       resample!(particles,spl.alg.resampler,use_replay=spl.alg.use_replay)
     end
+    i += 1
   end
   w, samples = getsample(particles)
   res = Chain(w, samples)
