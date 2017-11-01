@@ -61,6 +61,7 @@ end
 function EmpiricalNoAtoms(N,n_samples,alpha,theta, recursive)
   s_nm = Array{Float64}(n_samples, N)
   for m=1:n_samples
+    println("Iteration ", m)
     P = rand(PYP(alpha, theta, Normal(0, 1), recursive))
     #P = rand(DP(theta, Normal(0, 1), true))
     for n=1:N
@@ -83,11 +84,13 @@ end
 
 ## tests
 using Plots
+font = Plots.font("Helvetica", 10)
+pyplot(guidefont=font, xtickfont=font, ytickfont=font, legendfont=font)
 # pyplot()
 
 M = 1500
 N_theory = 50
-N_empirical = 1000
+N_empirical = 100
 n_samples = 10000
 
 alpha = 0.25
@@ -105,10 +108,13 @@ println(theory_nonrec)
 println(theory)
 
 
-plot(empirical_rec', ribbon=s_rec', fillalpha=.5, label="empirical, recursive")
-plot!(empirical_nonrec', ribbon=s_nonrec', fillalpha=.5, label="empirical, laziest")
+plot(empirical_rec', ribbon=s_rec', fillalpha=.1, label="empirical, recursive")
+plot!(empirical_nonrec', ribbon=s_nonrec', fillalpha=.1, label="empirical, laziest")
 plot!(theory', label="theoretical, recursive")
 plot!(theory_nonrec, label="theoretical, laziest")
+xlabel!("Number of samples")
+ylabel!("Number of atoms instantiated")
+savefig("atoms025-with-theory.pdf")
 
 
 #ylims!((1, 8))
