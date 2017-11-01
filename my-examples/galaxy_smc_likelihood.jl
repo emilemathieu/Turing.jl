@@ -21,7 +21,8 @@ mu_0 = 0.0; sigma_1 = 10; sigma_0 = 4*sigma_1;
 
   x = zeros(N)
   for i in 1:N
-    x[i] ~ P
+    P_copy = deepcopy(P)
+    x[i] ~ P_copy
     y[i] ~ Normal(x[i], sigma_1)
   end
 end
@@ -32,13 +33,19 @@ theta = 0.25
 
 # sampling using SMC
 w = zeros(100, 2)
+t = zeros(100, 2)
 for i=1:100
+  println("Iteration ", i)
   for (j, recursive) = enumerate([true, false])
+    tic()
     sampler = SMC(1000)
     results = sample(PYPGalaxy(data, alpha, theta, recursive), sampler)
-    w[i,j] = results.weight
+    w[i,j] = log(results.weight)
+    t[i,j] = toc()
   end
 end
 
 println(mean(w, 1))
 println(std(w, 1))
+println(mean(t, 1))
+println(std(t, 1))
