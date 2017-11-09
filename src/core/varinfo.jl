@@ -237,6 +237,20 @@ end
 #   vi.logp = vi.logp[end:end]
 # end
 
+updateidcsvals!(vi::VarInfo, vn::VarName) = begin
+  if getidx(vi, vn) != vi.index
+    old_index = vi.idcs[vn]
+    old_vns = [key for key in keys(vi.idcs) if getidx(vi, key) == vi.index]
+    @assert length(old_vns) == 1 "updateidcsvals! failed: old_vns=$old_vns, vi.index=$(vi.index), vn_now=$(vn)"
+    old_vn = old_vns[1]
+
+    old_vals = getval(vi, old_vn)
+    vi.idcs[vn] = vi.index
+    vi.idcs[old_vn] = old_index
+    setval!(vi, old_vals, old_vn)
+  end
+end
+
 # Get all indices of variables belonging to gid or 0
 getidcs(vi::VarInfo) = getidcs(vi, nothing)
 getidcs(vi::VarInfo, spl::Void) = filter(i -> vi.gids[i] == 0 || vi.gids[i] == 0, 1:length(vi.gids))
@@ -248,8 +262,9 @@ getidcs(vi::VarInfo, spl::Sampler) = begin
   if haskey(spl.info, :idcs) && (spl.info[:cache_updated] & CACHEIDCS) > 0
     spl.info[:idcs]
   else
-    spl.info[:cache_updated] = spl.info[:cache_updated] | CACHEIDCS
-    spl.info[:idcs] = filter(i ->
+    # spl.info[:cache_updated] = spl.info[:cache_updated] | CACHEIDCS
+    # spl.info[:idcs] =
+    filter(i ->
       (vi.gids[i] == spl.alg.gid || vi.gids[i] == 0) && (isempty(spl.alg.space) || is_inside(vi.vns[i], spl.alg.space)),
       1:length(vi.gids)
     )

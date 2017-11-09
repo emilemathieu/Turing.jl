@@ -38,7 +38,8 @@ assume(spl::Void, dist::Distribution, vn::VarName, vi::VarInfo) = begin
   if haskey(vi, vn)
     r = vi[vn]
   else
-    r = init(dist)
+    # r = init(dist)
+    r = rand(dist)
     push!(vi, vn, r, dist, 0)
   end
   # NOTE: The importance weight is not correctly computed here because

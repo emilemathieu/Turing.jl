@@ -65,10 +65,13 @@ step(model::Function, spl::Sampler{PG}, vi::VarInfo) = begin
     push!(particles, spl.alg.n_particles-1, spl, vi)
     push!(particles, ref_particle)
   end
+ i = 1
 
   while consume(particles) != Val{:done}
+      println("--------------consume: ", i," ---------------")
     # TODO: forkc somehow cause ProgressMeter to broke - need to figure out why
     resample!(particles, spl.alg.resampler, ref_particle; use_replay=false)
+    i += 1
   end
 
   ## pick a particle to be retained.
@@ -108,7 +111,9 @@ sample(model::Function, alg::PG;
   if PROGRESS spl.info[:progress] = ProgressMeter.Progress(n, 1, "[PG] Sampling...", 0) end
 
   for i = 1:n
-    time_elapsed = @elapsed vi = step(model, spl, vi)
+    # time_elapsed = @elapsed vi = step(model, spl, vi)
+    time_elapsed = 0
+    vi = step(model, spl, vi)
     push!(samples, Sample(vi))
     samples[i].value[:elapsed] = time_elapsed
 
@@ -136,7 +141,8 @@ sample(model::Function, alg::PG;
     save!(c, spl, model, vi)
   end
 
-  c
+  # c
+  samples
 end
 
 assume{T<:Union{PG,SMC}}(spl::Sampler{T}, dist::Distribution, vn::VarName, _::VarInfo) = begin
@@ -144,22 +150,34 @@ assume{T<:Union{PG,SMC}}(spl::Sampler{T}, dist::Distribution, vn::VarName, _::Va
   if isempty(spl.alg.space) || vn.sym in spl.alg.space
     vi.index += 1
     if ~haskey(vi, vn)
+    #   println("~haskey(vi, vn): ", vn)
       r = rand(dist)
-      push!(vi, vn, r, deepcopy(dist), spl.alg.gid)
+      push!(vi, vn, r, dist, spl.alg.gid)
       spl.info[:cache_updated] = CACHERESET # sanity flag mask for getidcs and getranges
       r
     elseif isnan(vi, vn)
+        # println("isnan: ", vn)
       r = rand(dist)
+      updateidcsvals!(vi, vn)
       setval!(vi, vectorize(dist, r), vn)
       setgid!(vi, spl.alg.gid, vn)
       r
     else
-      checkindex(vn, vi, spl)
+    #   println("ELSE: ", vn)
+    #   checkindex(vn, vi, spl)
       updategid!(vi, vn, spl)
       vi[vn]
     end
   else
-    vi[vn]
+    if haskey(vi, vn)
+      println("not in spl space but haskey: ", vn)
+      vi[vn]
+    else
+      println("not in spl space but has NO key: ", vn)
+      r = rand(dist)
+      push!(vi, vn, r, dist, 2)
+      r
+    end
   end
 end
 
