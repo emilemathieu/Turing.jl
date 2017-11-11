@@ -18,7 +18,7 @@ immutable Gibbs <: InferenceAlgorithm
   Gibbs(alg::Gibbs, new_gid) = new(alg.n_iters, alg.algs, alg.thin, new_gid)
 end
 
-typealias GibbsComponent Union{Hamiltonian,PG}
+typealias GibbsComponent Union{Hamiltonian,MH,PG}
 
 function Sampler(alg::Gibbs)
   n_samplers = length(alg.algs)
@@ -113,7 +113,9 @@ sample(model::Function, alg::Gibbs;
 
         for _ = 1:local_spl.alg.n_iters
           dprintln(2, "recording old θ...")
-          time_elapsed_thin = @elapsed varInfo = step(model, local_spl, varInfo, i==1)
+        #   time_elapsed_thin = @elapsed varInfo = step(model, local_spl, varInfo, i==1)
+          time_elapsed_thin = 0
+          varInfo = step(model, local_spl, varInfo, i==1)
 
           if ~spl.alg.thin
             samples[i_thin].value = Sample(varInfo).value
