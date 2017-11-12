@@ -1,7 +1,7 @@
 doc"""
     HMC(n_iters::Int)
 
-Metropolis-Hastings sampler.
+Metropolis-Hasting sampler.
 
 Usage:
 
@@ -21,7 +21,7 @@ Example:
   return s, m
 end
 
-# sample(gdemo([1.5, 2]), MH(1000, (:m, (x) -> Normal(x, 0.1)), :s)))
+sample(gdemo([1.5, 2]), MH(1000, (:m, (x) -> Normal(x, 0.1)), :s)))
 ```
 """
 immutable MH <: InferenceAlgorithm
@@ -32,6 +32,8 @@ immutable MH <: InferenceAlgorithm
   function MH(n_iters::Int, space...)
     new_space = Set()
     proposals = Dict{Symbol,Any}()
+
+    # parse random variables with their hypothetical proposal
     for element in space
         if isa(element, Symbol)
           push!(new_space, element)
@@ -52,6 +54,8 @@ Sampler(alg::MH) = begin
     info[:accept_his] = []
     info[:total_eval_num] = 0
     info[:proposal_ratio] = 0.0
+    info[:prior_prob] = 0.0
+    info[:violating_support] = false
 
     # Sanity check for space
     if alg.gid == 0 && !isempty(alg.space)
@@ -64,26 +68,24 @@ Sampler(alg::MH) = begin
     Sampler(alg, info)
 end
 
+propose(model::Function, spl::Sampler{MH}, vi::VarInfo) = begin
+  spl.info[:proposal_ratio] = 0.0
+  spl.info[:prior_prob] = 0.0
+  spl.info[:violating_support] = false
+  runmodel(model, vi ,spl)
+end
+
 step(model::Function, spl::Sampler{MH}, vi::VarInfo, is_first::Bool) = begin
   if is_first
     push!(spl.info[:accept_his], true)
     vi
-  else
 
+  else
     old_θ = copy(vi[spl])
-    if spl.alg.gid != 0
-        # dprintln(3, "X-> R...")
-        #   link!(vi, spl)
-        # runmodel(model, vi, nothing)
-        # vi[spl] = old_θ
-    end
     old_logp = getlogp(vi)
 
-    spl.info[:proposal_ratio] = 0.0
-    spl.info[:violating_support] = false
-
     dprintln(2, "Propose new parameters from proposals...")
-    runmodel(model, vi ,spl)
+    propose(model, spl, vi)
 
     dprintln(2, "computing accept rate α...")
     α = getlogp(vi) - old_logp + spl.info[:proposal_ratio]
@@ -96,9 +98,6 @@ step(model::Function, spl::Sampler{MH}, vi::VarInfo, is_first::Bool) = begin
       vi[spl] = old_θ         # reset Θ
       setlogp!(vi, old_logp)  # reset logp
     end
-
-    dprintln(3, "R -> X...")
-    # if spl.alg.gid != 0 invlink!(vi, spl); cleandual!(vi) end
 
     vi
   end
@@ -134,7 +133,6 @@ function sample(model::Function, alg::MH;
        deepcopy(resume_from.info[:vi])
 
   if spl.alg.gid == 0
-    # link!(vi, spl)
     runmodel(model, vi, spl)
   end
 
@@ -168,8 +166,6 @@ function sample(model::Function, alg::MH;
   end
   c = Chain(0, samples)       # wrap the result by Chain
   if save_state               # save state
-    # Convert vi back to X if vi is required to be saved
-    # if spl.alg.gid == 0 invlink!(vi, spl) end
     save!(c, spl, model, vi)
   end
 
@@ -189,17 +185,16 @@ end
 assume(spl::Sampler{MH}, dist::Distribution, vn::VarName, vi::VarInfo) = begin
     if isempty(spl.alg.space) || vn.sym in spl.alg.space
       vi.index += 1
-      oldval = getval(vi, vn)[1]
+      old_val = getval(vi, vn)[1]
 
-      if ~haskey(vi, vn) #NOTE: When would that happens ??
-          println("has no key: ", vn)
+      if ~haskey(vi, vn)
         r = rand(dist)
         push!(vi, vn, r, dist, spl.alg.gid)
-        spl.info[:proposal_ratio] += (logpdf(dist, oldval) - logpdf(dist, r))
+        spl.info[:proposal_ratio] += (logpdf(dist, old_val) - logpdf(dist, r))
         spl.info[:cache_updated] = CACHERESET # sanity flag mask for getidcs and getranges
 
       elseif vn.sym in keys(spl.alg.proposals) # Custom proposal for this parameter
-        proposal = spl.alg.proposals[vn.sym](oldval)
+        proposal = spl.alg.proposals[vn.sym](old_val)
 
         if typeof(proposal) == Distributions.Normal{Float64} # If Gaussian proposal
           σ = std(proposal)
@@ -208,25 +203,26 @@ assume(spl::Sampler{MH}, dist::Distribution, vn::VarName, vi::VarInfo) = begin
           stdG = Normal()
           r = rand_truncated(proposal, lb, ub)
           # cf http://fsaad.scripts.mit.edu/randomseed/metropolis-hastings-sampling-with-gaussian-drift-proposal-on-bounded-support/
-          spl.info[:proposal_ratio] += log(cdf(stdG, (ub-oldval)/σ) - cdf(stdG,(lb-oldval)/σ))
+          spl.info[:proposal_ratio] += log(cdf(stdG, (ub-old_val)/σ) - cdf(stdG,(lb-old_val)/σ))
           spl.info[:proposal_ratio] -= log(cdf(stdG, (ub-r)/σ) - cdf(stdG,(lb-r)/σ))
 
         else # Other than Gaussian proposal
           r = rand(proposal)
           if (r < support(dist).lb) | (r > support(dist).ub) # check if value lies in support
             spl.info[:violating_support] = true
-            r = oldval
+            r = old_val
           end
           spl.info[:proposal_ratio] -= logpdf(proposal, r) # accumulate pdf of proposal
           reverse_proposal = spl.alg.proposals[vn.sym](r)
-          spl.info[:proposal_ratio] += logpdf(reverse_proposal, oldval)
+          spl.info[:proposal_ratio] += logpdf(reverse_proposal, old_val)
         end
 
       else # Prior as proposal
         r = rand(dist)
-        spl.info[:proposal_ratio] += (logpdf(dist, oldval) - logpdf(dist, r))
+        spl.info[:proposal_ratio] += (logpdf(dist, old_val) - logpdf(dist, r))
       end
 
+      spl.info[:prior_prob] += logpdf(dist, r) # accumulate prior for PMMH
       setval!(vi, vectorize(dist, r), vn)
       setgid!(vi, spl.alg.gid, vn)
     else

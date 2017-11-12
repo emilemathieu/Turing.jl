@@ -24,9 +24,8 @@ check_numerical(res,
 
 # MH with Gaussian proposal
 GaussianKernel(var) = (x) -> Normal(x, sqrt(var))
-
 check_numerical(
-  sample(pmmhtest(x), MH(100, (:s, GaussianKernel(10.0)), (:m, GaussianKernel(10.0)))),
+  sample(pmmhtest(x), MH(100, (:s, GaussianKernel(1.0)), (:m, GaussianKernel(1.0)))),
   [:s, :m], [49/24, 7/6]
 )
 
