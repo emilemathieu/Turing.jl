@@ -71,21 +71,20 @@ function sweeps_predictive_density(xaxis, SMC_sweeps, RPM)
     return yaxis
 end
 
-xaxis = linspace(0.7*minimum(data),1.0*maximum(data),80)
+xaxis = linspace(0.8*minimum(data),1.2*maximum(data),200)
 SMC_sweeps = 5
 yaxisPYP = sweeps_predictive_density(xaxis, SMC_sweeps, PYP(0.5, 1.0, Normal(mu_0, sigma_0)))
 yaxisNIGP = sweeps_predictive_density(xaxis, SMC_sweeps, NGGP(0.5, .01, Normal(mu_0, sigma_0)))
 
-
+using Plots
 font = Plots.font("Helvetica", 16)
-pyplot(guidefont=font, xtickfont=font, ytickfont=font, legendfont=font, size=(3000, 1500))
+pyplot(guidefont=font, xtickfont=font, ytickfont=font, legendfont=font, size=(750, 375))
 # pyplot()
 
 
 # yaxis = compute_predictive_density(results, xaxis)
-plot(xaxis, yaxisPYP/5, linewidth=2, label="Pitman-Yor(0.5, 1)")
-plot!(xaxis, yaxisNIGP/5, linewidth=2, color=:green, label="NIGP(0.01)")
-bar!(hist(data, 100), alpha=.5, linewidth=0, color=:brown, label="Empirical")
-xlabel!("x", fontsize=16)
+plot(xaxis, yaxisPYP/5, linewidth=2, label="Pitman-Yor(0.5, 1)", xticks=[], yticks=[])
+plot!(xaxis, yaxisNIGP/5, linewidth=2, color=:green, label="NIGP(0.01)", xticks=[], yticks=[])
+bar!(hist(data, 100), alpha=.5, linewidth=0, color=:brown, label="Data", xticks=[], yticks=[])
 ylabel!("Probability density", fontsize=16)
 savefig("predictive-density.pdf")
