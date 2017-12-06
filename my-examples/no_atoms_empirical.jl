@@ -85,7 +85,7 @@ end
 ## tests
 using Plots
 font = Plots.font("Helvetica", 16)
-pyplot(guidefont=font, xtickfont=font, ytickfont=font, legendfont=font, size=(3000, 1500))
+pyplot(guidefont=font, xtickfont=font, ytickfont=font, legendfont=font, size=(1000, 500))
 # pyplot()
 
 M = 1500
@@ -105,11 +105,11 @@ end
 
 
 
-plot(log(recs[1, :]), label="0.25")
-plot!(log(recs[2, :]), label="0.35")
-# plot!(log(recs[3, :]), label="0.45")
-# plot!(log(recs[5, :]), label="0.55")
-# plot!(log(nrecs[5, :]), label="0.55, laziest", width=4)
-# xlabel!("Number of samples", fontsize=16)
-# ylabel!("Log number of atoms instantiated", fontsize=16)
-# savefig("atoms025-055.pdf")
+plot(log(recs[1, :]), label="0.25", width=2)
+plot!(log(recs[2, :]), label="0.35", width=2)
+plot!(log(recs[3, :]), label="0.45", width=2)
+plot!(log(recs[5, :]), label="0.55", width=2)
+plot!(log(nrecs[5, :]), label="0.55, laziest", width=4)
+xlabel!("Number of samples", fontsize=16)
+ylabel!("Log number of atoms instantiated", fontsize=16)
+savefig("atoms025-055.pdf")

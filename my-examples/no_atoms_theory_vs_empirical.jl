@@ -90,10 +90,10 @@ pyplot(guidefont=font, xtickfont=font, ytickfont=font, legendfont=font, size=(30
 
 M = 1500
 N_theory = 50
-N_empirical = 1000
+N_empirical = 100
 n_samples = 4000
 
-#alpha = 0.25
+alpha = 0.25
 theta = 0.1 # enter this as a float
 
 empirical_rec, s_rec = EmpiricalNoAtoms(N_empirical, n_samples, alpha, theta, true)
@@ -108,10 +108,10 @@ println(theory_nonrec)
 println(theory)
 
 
-plot(empirical_rec', ribbon=s_rec', fillalpha=.1, label="empirical, recursive")
-plot!(theory', label="theoretical, recursive")
-plot!(empirical_nonrec', ribbon=s_nonrec', fillalpha=.1, label="empirical, laziest")
-plot!(theory_nonrec, label="theoretical, laziest")
+plot(empirical_rec', ribbon=s_rec', fillalpha=.1, label="empirical, recursive", width=2)
+plot!(theory', label="theoretical, recursive", width=2)
+plot!(empirical_nonrec', ribbon=s_nonrec', fillalpha=.1, label="empirical, laziest", width=2)
+plot!(theory_nonrec, label="theoretical, laziest", width=2)
 xlabel!("Number of samples", fontsize=16)
 ylabel!("Number of atoms instantiated", fontsize=16)
 savefig("atoms025-with-theory.pdf")
